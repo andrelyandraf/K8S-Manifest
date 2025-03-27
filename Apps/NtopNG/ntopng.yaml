@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ntopng
+  namespace: production
+  labels:
+    app: ntopng
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ntopng
+  template:
+    metadata:
+      labels:
+        app: ntopng
+      annotations:
+        k8s.v1.cni.cncf.io/networks: sriov-net1
+    spec:
+      containers:
+      - name: ntopng
+        image: ntop/ntopng:stable
+        ports:
+        - containerPort: 3000
+        resources:
+            requests:
+              mellanox.com/mlnx_rdma: '1'
+            limits:
+              mellanox.com/mlnx_rdma: '1'
+        volumeMounts:
+        - name: ntopvolume
+          mountPath: /data/ntopng
+      nodeName: worker1
+      volumes:
+      - name: ntopvolume
+        persistentVolumeClaim:
+          claimName: ntopng-volume
